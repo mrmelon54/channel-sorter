@@ -44,3 +44,28 @@ func TestSortWithDelay(t *testing.T) {
 		t.Fatal("Output slice should match [1, 2]")
 	}
 }
+
+func TestSortWithLongerDelay(t *testing.T) {
+	z := time.Now()
+	a := make(chan int, 10)
+	go func() {
+		time.AfterFunc(time.Second*4, func() { a <- 2 })
+		time.AfterFunc(time.Second*3, func() { a <- 1 })
+	}()
+	c2 := Sort[int](time.Second*2, a, func(i int, j int) bool { return i < j })
+	<-c2
+	c := <-c2
+	n := time.Now().Sub(z)
+	if n < time.Second*6 {
+		t.Fatal("Inactive channel should finish after 6 seconds")
+	}
+	if n > time.Second*7 {
+		t.Fatal("Inactive channel should finish within 7 seconds")
+	}
+	if len(c) != 2 {
+		t.Fatal("Output length should be 2 as 2 numbers were provided")
+	}
+	if !reflect.DeepEqual(c, []int{1, 2}) {
+		t.Fatal("Output slice should match [1, 2]")
+	}
+}
