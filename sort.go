@@ -18,6 +18,7 @@ func Sort[T any](d time.Duration, in chan T, less func(T, T) bool) chan []T {
 					return less(a[i], a[j])
 				})
 				z <- a
+				a = make([]T, 0)
 			case b := <-in:
 				t.Tick()
 				a = append(a, b)
